@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.10.1](https://github.com/LiquidLogicLabs/git-action-docker-metadata/compare/v5.10.0...v5.10.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* force publish releases non-draft ([a05fabf](https://github.com/LiquidLogicLabs/git-action-docker-metadata/commit/a05fabf0a5d589c2b525288fe69436adadcd5e36))
+
 ### [0.1.5](https://github.com/LiquidLogicLabs/git-action-docker-metadata/compare/v0.1.4...v0.1.5) (2025-11-09)
 
 ### [0.1.4](https://github.com/LiquidLogicLabs/git-action-docker-metadata/compare/v0.1.3...v0.1.4) (2025-11-09)
