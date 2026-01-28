@@ -10,6 +10,7 @@ on:
       - 'master'
       - 'releases/v*'
   pull_request:
+  workflow_dispatch:
 
 # Skip tests if only documentation files changed
 jobs:
