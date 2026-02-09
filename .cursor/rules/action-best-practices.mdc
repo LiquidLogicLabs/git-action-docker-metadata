@@ -77,6 +77,7 @@ Common input conventions (recommended):
 - `platform` / `provider`: when supporting multiple forges, allow explicit override in addition to auto-detection.
 - `dryRun`: for destructive actions, support a dry-run mode.
 - `verbose`: for extra logs.
+- `skipCertificateCheck`: when the action calls external URLs (HTTP APIs, package registries, downloads) or invokes network-capable CLIs, provide an opt-in escape hatch to disable TLS certificate validation for that operation. Default should be `false`, and the action should emit a clear warning when enabled.
 - Repository targeting: prefer a single `repository` in `owner/repo` form; optionally allow `owner` + `repo` inputs for convenience.
 
 List inputs:
@@ -190,7 +191,7 @@ Guidelines:
 
 - Keep it thin: it should call `@actions/core` under the hood.
 - Prefer passing `logger` into modules instead of passing `verbose` booleans everywhere.
-- Still support `core.debug()` so workflow-level debug (`ACTIONS_STEP_DEBUG`) works.
+- Still support `core.debug()` so workflow-level debug (`ACTIONS_STEP_DEBUG`) works. If you wrap logging, treat “debug enabled” as `core.isDebug()` (toolkit) or `process.env.ACTIONS_STEP_DEBUG === 'true'`, not only as `verbose`.
 - If you emit verbose logs via `core.info()`, prefix with something like `[DEBUG]`.
 
 ### 5.5 Secret handling
@@ -653,6 +654,7 @@ Consistency checklist (apply the same order across repos):
 - Pin third-party actions to a major version at minimum (or commit SHA for maximum security).
 - Prefer using well-maintained actions over ad-hoc scripts for common tasks (checkout, setup runtime, caching, artifact upload, releases).
 - Avoid executing remote scripts via `curl | bash` unless you verify checksums/signatures.
+- Do not silently bypass TLS verification. If you must support it (self-signed corp endpoints, air-gapped mirrors), gate it behind an explicit `skipCertificateCheck` input (default `false`) and warn loudly when enabled. Prefer scoping the bypass to the specific request/command rather than setting global environment flags (e.g., avoid globally setting `NODE_TLS_REJECT_UNAUTHORIZED=0`).
 
 Scripts vs actions:
 

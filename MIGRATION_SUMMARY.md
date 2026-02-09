@@ -65,7 +65,8 @@ Created a new module using `simple-git` to extract context from git:
 - Default branch falls back to git remote HEAD when payload omits it.
 
 ### 8. Version Alignment
-- Local version set to upstream v5.10.0 to track parity.
+- Upstream feature baseline: v5.10.0.
+- Fork releases may add patch versions (e.g., v5.10.1) for fork-specific changes.
 
 ### 9. Sync Process Documentation
 - Added `docs/UPSTREAM_SYNC_RULES.md` describing repeatable git-only upstream sync.
@@ -90,7 +91,7 @@ The action works exactly as before in workflows:
 
 ```yaml
 - name: Docker metadata
-  uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+  uses: LiquidLogicLabs/git-action-docker-metadata@v5
   with:
     images: |
       myorg/myapp
@@ -189,7 +190,7 @@ The test suite in `__tests__/` still uses GitHub Actions mocks. See `TESTS_TODO.
 - Enhanced error messages for git command failures
 - Fallback to GitHub API when available (hybrid mode)
 
-### Current Parity Snapshot (v5.10.0)
+### Current Parity Snapshot (upstream v5.10.0)
 - Inputs/outputs/tag logic aligned with upstream v5.10.0
 - Git-only context: no `@actions/github` / GitHub API calls
 - `base_ref`/PR head SHA sourced from event payload when present; empty otherwise

@@ -8,7 +8,8 @@ branding:
 
 inputs:
   context:
-    description: 'Source to derive metadata context (git|workflow, default git)'
+    description: 'Where to get context data. Allowed options are "workflow" (default), "git".'
+    default: 'workflow'
     required: false
   images:
     description: 'List of Docker images to use as base name for tags'
@@ -36,6 +37,10 @@ inputs:
     required: false
   bake-target:
     description: 'Bake target name (default git-action-docker-metadata)'
+    required: false
+  github-token:
+    description: 'GitHub Token as provided by secrets (unused in this fork; retained for upstream compatibility)'
+    default: ${{ github.token }}
     required: false
 
 outputs:

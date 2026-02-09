@@ -28,7 +28,7 @@ describe('getInputs', () => {
         ['images', 'moby/buildkit\nghcr.io/moby/mbuildkit'],
       ]),
       {
-        context: ContextSource.git,
+        context: ContextSource.workflow,
         bakeTarget: 'git-action-docker-metadata',
         flavor: [],
         images: ['moby/buildkit', 'ghcr.io/moby/mbuildkit'],
@@ -55,7 +55,7 @@ describe('getInputs', () => {
         ['sep-annotations', ',']
       ]),
       {
-        context: ContextSource.git,
+        context: ContextSource.workflow,
         bakeTarget: 'metadata',
         flavor: [],
         images: ['moby/buildkit'],
@@ -78,7 +78,7 @@ describe('getInputs', () => {
         ['images', 'moby/buildkit\n#comment\nghcr.io/moby/mbuildkit'],
       ]),
       {
-        context: ContextSource.git,
+        context: ContextSource.workflow,
         bakeTarget: 'git-action-docker-metadata',
         flavor: [],
         images: ['moby/buildkit', 'ghcr.io/moby/mbuildkit'],

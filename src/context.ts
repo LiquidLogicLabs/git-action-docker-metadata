@@ -60,7 +60,7 @@ function getInputList(name: string, options?: {ignoreComma?: boolean; comment?: 
 }
 
 export function getInputs(): Inputs {
-  const contextInput = (core.getInput('context') || ContextSource.git).toLowerCase();
+  const contextInput = (core.getInput('context') || ContextSource.workflow).toLowerCase();
   if (!Object.values(ContextSource).includes(contextInput as ContextSource)) {
     throw new Error(`Invalid context source: ${contextInput}`);
   }

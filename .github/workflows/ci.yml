@@ -19,35 +19,31 @@ env:
   DOCKER_IMAGE: localhost:5000/name/app
   BUILDX_VERSION: latest
 
-# Skip CI if only documentation files changed
 jobs:
-  changes:
+  context:
     runs-on: ubuntu-latest
-    outputs:
-      docs: ${{ steps.changes.outputs.docs }}
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+          - workflow
+          - git
     steps:
-      - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@v3
-        id: changes
+      -
+        name: Checkout
+        uses: actions/checkout@v6
+      -
+        name: Docker meta
+        uses: ./
         with:
-          filters: |
-            docs:
-              - 'README.md'
-              - 'ACT_TESTING_GUIDE.md'
-              - 'MIGRATION_SUMMARY.md'
-              - 'TESTS_TODO.md'
-              - 'docs/**'
-              - '*.md'
+          context: ${{ matrix.context }}
 
-  # All other jobs depend on changes check
   multi-images:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -72,8 +68,6 @@ jobs:
         run: env|sort
 
   tag-schedule:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -86,7 +80,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -108,8 +102,6 @@ jobs:
             type=sha
 
   tag-match:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -124,7 +116,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -147,8 +139,6 @@ jobs:
             type=sha
 
   tag-semver:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -160,7 +150,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -187,13 +177,11 @@ jobs:
             latest=${{ matrix.flavor-latest }}
 
   flavor:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -212,13 +200,11 @@ jobs:
             suffix=-bar
 
   images:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -235,13 +221,11 @@ jobs:
             name=ghcr.io/name/release,enable=${{ startsWith(github.ref, 'refs/tags/') }}
 
   custom-labels-annotations:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -267,13 +251,11 @@ jobs:
             org.opencontainers.image.vendor=MyFooCompany
 
   global-exps:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -299,13 +281,11 @@ jobs:
             type=raw,value=gexp-notdefbranch,enable={{is_not_default_branch}}
 
   json:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -331,8 +311,6 @@ jobs:
           echo "created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}"
 
   docker-push:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     services:
       registry:
@@ -342,7 +320,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -386,13 +364,11 @@ jobs:
           docker buildx imagetools inspect ${{ env.DOCKER_IMAGE }}:${{ steps.docker_meta.outputs.version }}
 
   bake:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -427,8 +403,6 @@ jobs:
             release
 
   sep-tags:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -439,7 +413,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -463,13 +437,11 @@ jobs:
             console.log(`${{ steps.meta.outputs.tags }}`);
 
   output-env:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -502,15 +474,13 @@ jobs:
             DOCKER_METADATA_OUTPUT_JSON
 
   no-output-env:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     env:
       DOCKER_METADATA_SET_OUTPUT_ENV: false
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Docker meta
         id: meta
@@ -530,13 +500,11 @@ jobs:
           [[ "$(printenv | grep "^DOCKER_METADATA_OUTPUT_" | wc -l)" -eq 0 ]] || exit 1
 
   bake-annotations:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -573,13 +541,11 @@ jobs:
             release
 
   no-images:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -601,13 +567,11 @@ jobs:
         run: env|sort
 
   bake-path-context:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -630,8 +594,6 @@ jobs:
             release
 
   sha-short:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -642,7 +604,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -662,13 +624,11 @@ jobs:
           DOCKER_METADATA_SHORT_SHA_LENGTH: ${{ matrix.short-length }}
 
   dump:
-    needs: changes
-    if: ${{ !needs.changes.outputs.docs }}
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Dump context
         uses: crazy-max/ghaction-dump-context@v2

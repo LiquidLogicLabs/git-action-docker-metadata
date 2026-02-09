@@ -7,7 +7,7 @@
 ## About
 
 > **Fork Notice**: This is a fork of [docker/metadata-action](https://github.com/docker/metadata-action) that has been modified to remove all dependencies on GitHub APIs. This allows it to work with any git repository, not just GitHub-hosted ones.
-> **Sync Status**: Aligned with upstream `docker/metadata-action` v5.10.0; differences are limited to removing GitHub API calls and relying on git-derived context.
+> **Sync Status**: Based on upstream `docker/metadata-action` v5.10.0; this fork may publish patch releases (e.g., v5.10.1) for fork-specific changes while keeping the upstream feature baseline.
 
 ### Key Differences from Original
 
@@ -170,7 +170,7 @@ jobs:
       -
         name: Docker meta
         id: meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: name/app
       -
@@ -224,7 +224,7 @@ jobs:
       -
         name: Docker meta
         id: meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: |
             name/app
@@ -299,7 +299,7 @@ jobs:
       -
         name: Docker meta
         id: meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: |
             name/app
@@ -803,7 +803,7 @@ increase this length for larger repositories by setting the
       -
         name: Docker meta
         id: meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: |
             name/app
@@ -1014,7 +1014,7 @@ that you can reuse them further in your workflow using the [`fromJSON` function]
 ```yaml
       -
         name: Docker meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         id: meta
         with:
           images: name/app
@@ -1040,7 +1040,7 @@ this:
       -
         name: Docker meta
         id: meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: name/app
           labels: |
@@ -1062,7 +1062,7 @@ of the `metadata-action`:
 ```yaml
       -
         name: Docker meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: name/app
       -
@@ -1078,7 +1078,7 @@ The same can be done with the [`bake-action`](https://github.com/docker/bake-act
 ```yaml
       -
         name: Docker meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: name/app
       -
@@ -1107,7 +1107,7 @@ Please consult the documentation of your registry.
 ```yaml
       -
         name: Docker meta
-        uses: LiquidLogicLabs/git-action-docker-metadata@v0.1.0
+        uses: LiquidLogicLabs/git-action-docker-metadata@v5
         with:
           images: name/app
         env:

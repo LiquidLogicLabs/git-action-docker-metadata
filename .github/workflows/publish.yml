@@ -1,67 +1,21 @@
 name: publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag (defaults to latest tag)'
-        required: false
-  workflow_run:
-    workflows: ['test']
-    types: ['completed']
+  release:
+    types:
+      - published
 
 jobs:
-  bundle:
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       contains(github.event.workflow_run.head_commit.message, 'chore(release): '))
+  publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      id-token: write
+      packages: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref }}
-
-      - name: Determine tag
-        id: tag
-        uses: LiquidLogicLabs/git-tag-validate-version-action@v1
-        with:
-          tag: ${{ github.event.inputs.tag || github.ref_name || github.ref }}
-
-      - name: Checkout tag
-        run: |
-          git checkout ${{ steps.tag.outputs.tag }}
-
-      - name: Install dependencies
-        run: corepack yarn install --immutable
-
-      - name: Build dist bundle
-        run: corepack yarn build
-
-      - name: Zip bundle
-        run: |
-          mkdir -p release
-          tar -czf release/docker-metadata-action-${{ steps.tag.outputs.value }}.tar.gz dist
-
-      - name: Create/Update floating tags
-        if: steps.tag.outputs.hasPrerelease != 'true' && steps.tag.outputs.isValid == 'true'
-        uses: LiquidLogicLabs/git-floating-version-tags-action@v1
-        with:
-          tag: ${{ steps.tag.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create release
-        uses: LiquidLogicLabs/git-action-release@v1
-        with:
-          tag: ${{ steps.tag.outputs.tag }}
-          name: Release ${{ steps.tag.outputs.version }}
-          body: Automated release bundle
-          draft: false
-          prerelease: ${{ steps.tag.outputs.hasPrerelease == 'true' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Checkout
+        uses: actions/checkout@v6
+      -
+        name: Publish
+        uses: actions/publish-immutable-action@v0.0.4

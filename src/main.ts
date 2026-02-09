@@ -10,9 +10,23 @@ function setOutputAndEnv(name: string, value: string) {
   core.exportVariable(`DOCKER_METADATA_OUTPUT_${name.replace(/\W/g, '_').toUpperCase()}`, value);
 }
 
+function parseBool(input: string): boolean {
+  const normalized = (input ?? '').trim().toLowerCase();
+  if (normalized.length === 0) {
+    return false;
+  }
+  if (['1', 't', 'true', 'y', 'yes', 'on'].includes(normalized)) {
+    return true;
+  }
+  if (['0', 'f', 'false', 'n', 'no', 'off'].includes(normalized)) {
+    return false;
+  }
+  return false;
+}
+
 function outputEnvEnabled(): boolean {
   if (process.env.DOCKER_METADATA_SET_OUTPUT_ENV) {
-    return /true/i.test(process.env.DOCKER_METADATA_SET_OUTPUT_ENV);
+    return parseBool(process.env.DOCKER_METADATA_SET_OUTPUT_ENV);
   }
   return true;
 }
