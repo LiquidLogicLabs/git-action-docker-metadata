@@ -1,0 +1,25 @@
+{
+  "ref": "refs/heads/master",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "860c1904a1ce19322e91ac35af1ab07466440c37",
+  "commits": [
+    {
+      "id": "860c1904a1ce19322e91ac35af1ab07466440c37",
+      "message": "test commit",
+      "timestamp": "2026-03-24T00:00:00Z"
+    }
+  ],
+  "head_commit": {
+    "id": "860c1904a1ce19322e91ac35af1ab07466440c37",
+    "message": "test commit",
+    "timestamp": "2026-03-24T00:00:00Z"
+  },
+  "repository": {
+    "name": "git-action-docker-metadata",
+    "full_name": "LiquidLogicLabs/git-action-docker-metadata",
+    "default_branch": "master",
+    "description": "Docker metadata action without GitHub API dependencies",
+    "html_url": "https://github.com/LiquidLogicLabs/git-action-docker-metadata",
+    "license": { "spdx_id": "Apache-2.0" }
+  }
+}

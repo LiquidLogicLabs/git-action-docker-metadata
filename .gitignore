@@ -56,5 +56,5 @@ jspm_packages/
 .pnp.*
 
 # act (GitHub Actions local testing)
-.act/
+/.act/
 .secrets
