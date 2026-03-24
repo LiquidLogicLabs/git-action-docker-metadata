@@ -1,17 +1,32 @@
 {
   "name": "docker-metadata-action",
-  "description": "GitHub Action to extract metadata (tags, labels) for Docker",
+  "version": "6.0.0",
+  "description": "GitHub Action to extract metadata (tags, labels) for Docker without GitHub API dependencies",
   "type": "module",
   "main": "src/main.ts",
   "scripts": {
     "build": "ncc build --source-map --minify --license licenses.txt",
     "lint": "eslint --max-warnings=0 .",
     "format": "eslint --fix .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:act": "act workflow_dispatch -W .github/workflows/test.yml --eventpath .github/workflows/.act/event-workflow_call.json",
+    "test:act:verbose": "act workflow_dispatch -W .github/workflows/test.yml --eventpath .github/workflows/.act/event-workflow_call.json -v",
+    "test:act:ci": "act -W .github/workflows/ci.yml --eventpath .github/workflows/.act/event-ci.json",
+    "test:act:release": "act push --workflows .github/workflows/publish.yml -j bundle --eventpath .github/workflows/.act/event-release.json",
+    "lint:act": "act -W .github/workflows/ci.yml -j lint",
+    "release": "standard-version --release-as patch && git push --follow-tags origin HEAD",
+    "release:patch": "npm run package && standard-version --release-as patch && (V=$(node -p \"require('./package.json').version\") && git add dist/ && git commit --amend --no-edit && git tag -f v$V) && git push --follow-tags origin HEAD",
+    "release:minor": "npm run package && standard-version --release-as minor && (V=$(node -p \"require('./package.json').version\") && git add dist/ && git commit --amend --no-edit && git tag -f v$V) && git push --follow-tags origin HEAD",
+    "release:major": "npm run package && standard-version --release-as major && (V=$(node -p \"require('./package.json').version\") && git add dist/ && git commit --amend --no-edit && git tag -f v$V) && git push --follow-tags origin HEAD",
+    "release:pre-alpha": "standard-version --prerelease alpha && git push --follow-tags origin HEAD",
+    "release:pre-beta": "standard-version --prerelease beta && git push --follow-tags origin HEAD",
+    "release:pre-rc": "standard-version --prerelease rc && git push --follow-tags origin HEAD",
+    "release:pre-dev": "standard-version --prerelease patch --prereleaseId dev && git push --follow-tags origin HEAD",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/docker/metadata-action.git"
+    "url": "git+https://github.com/LiquidLogicLabs/git-action-docker-metadata.git"
   },
   "keywords": [
     "actions",
@@ -25,14 +40,13 @@
   "packageManager": "yarn@4.9.2",
   "dependencies": {
     "@actions/core": "^3.0.0",
-    "@actions/github": "^9.0.0",
-    "@docker/actions-toolkit": "^0.79.0",
     "@renovate/pep440": "^1.0.0",
     "csv-parse": "^6.1.0",
     "handlebars": "^4.7.8",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.1",
-    "semver": "^7.7.4"
+    "semver": "^7.7.4",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
@@ -49,7 +63,16 @@
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.3.0",
     "prettier": "^3.8.1",
+    "standard-version": "^9.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "standard-version": {
+    "scripts": {
+      "precommit": "git add CHANGELOG.md package.json"
+    },
+    "skip": {
+      "tag": false
+    }
   }
 }

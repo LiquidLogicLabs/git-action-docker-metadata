@@ -45,9 +45,16 @@ jspm_packages/
 .env.production.local
 .env.local
 
+
+# Devcontainer secrets — copy of .devcontainer/.devcontainer-secrets.sample with real values
+.devcontainer-secrets
 # yarn v2
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# act (GitHub Actions local testing)
+.act/
+.secrets

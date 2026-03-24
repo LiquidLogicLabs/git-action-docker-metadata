@@ -1,0 +1,49 @@
+{
+  "name": "Git Tag Validate Version Action",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": { "version": "latest" },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "orta.vscode-jest",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true
+      }
+    }
+  },
+
+  // Runs on the HOST before the container builds.
+  // - Ensures ~/.actrc exists so the mount below never fails on first use.
+  // - Auto-copies .devcontainer-secrets.sample → .devcontainer-secrets if missing,
+  //   so new contributors get a pre-populated template on first open.
+  "initializeCommand": "touch ${HOME}/.actrc && [ -f ${localWorkspaceFolder}/.devcontainer-secrets ] || cat ${localWorkspaceFolder}/.devcontainer/.devcontainer-secrets.sample | envsubst > ${localWorkspaceFolder}/.devcontainer-secrets",
+
+  "mounts": [
+    // Bind .git so git tag operations work inside the container.
+    "source=${localWorkspaceFolder}/.git,target=/workspaces/${localWorkspaceFolderBasename}/.git,type=bind,consistency=cached",
+    // Mount host ~/.actrc read-only — carries all act platform mappings, flags, and secrets
+    // (GITHUB_TOKEN, DOCKERHUB_TOKEN, NPM_REGISTRY_TOKEN, etc.) into the container.
+    "source=${env:HOME}/.actrc,target=/home/node/.actrc,type=bind,consistency=cached,readonly"
+  ],
+
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "remoteUser": "node"
+}

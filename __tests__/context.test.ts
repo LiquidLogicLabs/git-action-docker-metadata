@@ -1,10 +1,14 @@
-import {beforeEach, describe, expect, test, it, vi} from 'vitest';
-import {Git} from '@docker/actions-toolkit/lib/git.js';
-import {Toolkit} from '@docker/actions-toolkit/lib/toolkit.js';
+import {afterEach, beforeEach, describe, expect, test, it, vi} from 'vitest';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import * as context from '../src/context.js';
+import {ContextSource, getContext, getInputs, Inputs} from '../src/context.js';
+import * as gitModule from '../src/git.js';
 
-const toolkit = new Toolkit({githubToken: 'fake-github-token'});
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('getInputs', () => {
   beforeEach(() => {
@@ -17,24 +21,28 @@ describe('getInputs', () => {
   });
 
   // prettier-ignore
-  const cases: [number, Map<string, string>, context.Inputs][] = [
+  const cases: [number, Map<string, string>, Inputs][] = [
     [
       0,
       new Map<string, string>([
         ['images', 'moby/buildkit\nghcr.io/moby/mbuildkit'],
       ]),
       {
-        context: context.ContextSource.workflow,
-        bakeTarget: 'docker-metadata-action',
+        context: ContextSource.workflow,
+        bakeTarget: 'git-action-docker-metadata',
         flavor: [],
-        githubToken: '',
         images: ['moby/buildkit', 'ghcr.io/moby/mbuildkit'],
         labels: [],
         annotations: [],
         sepLabels: '\n',
         sepTags: '\n',
         sepAnnotations: '\n',
-        tags: [],
+        tags: [
+          'type=schedule',
+          'type=ref,event=branch',
+          'type=ref,event=tag',
+          'type=ref,event=pr'
+        ],
       }
     ],
     [
@@ -47,17 +55,21 @@ describe('getInputs', () => {
         ['sep-annotations', ',']
       ]),
       {
-        context: context.ContextSource.workflow,
+        context: ContextSource.workflow,
         bakeTarget: 'metadata',
         flavor: [],
-        githubToken: '',
         images: ['moby/buildkit'],
         labels: [],
         annotations: [],
         sepLabels: ',',
         sepTags: ',',
         sepAnnotations: ',',
-        tags: [],
+        tags: [
+          'type=schedule',
+          'type=ref,event=branch',
+          'type=ref,event=tag',
+          'type=ref,event=pr'
+        ],
       }
     ],
     [
@@ -66,17 +78,21 @@ describe('getInputs', () => {
         ['images', 'moby/buildkit\n#comment\nghcr.io/moby/mbuildkit'],
       ]),
       {
-        context: context.ContextSource.workflow,
-        bakeTarget: 'docker-metadata-action',
+        context: ContextSource.workflow,
+        bakeTarget: 'git-action-docker-metadata',
         flavor: [],
-        githubToken: '',
         images: ['moby/buildkit', 'ghcr.io/moby/mbuildkit'],
         labels: [],
         annotations: [],
         sepLabels: '\n',
         sepTags: '\n',
         sepAnnotations: '\n',
-        tags: [],
+        tags: [
+          'type=schedule',
+          'type=ref,event=branch',
+          'type=ref,event=tag',
+          'type=ref,event=pr'
+        ],
       }
     ],
     [
@@ -85,17 +101,21 @@ describe('getInputs', () => {
         ['labels', 'mylabel=foo#bar\n#comment\nanother=bar'],
       ]),
       {
-        context: context.ContextSource.workflow,
-        bakeTarget: 'docker-metadata-action',
+        context: ContextSource.workflow,
+        bakeTarget: 'git-action-docker-metadata',
         flavor: [],
-        githubToken: '',
         images: [],
         labels: ['mylabel=foo#bar', 'another=bar'],
         annotations: [],
         sepLabels: '\n',
         sepTags: '\n',
         sepAnnotations: '\n',
-        tags: [],
+        tags: [
+          'type=schedule',
+          'type=ref,event=branch',
+          'type=ref,event=tag',
+          'type=ref,event=pr'
+        ],
       }
     ],
     [
@@ -104,10 +124,9 @@ describe('getInputs', () => {
         ['annotations', 'org.opencontainers.image.url=https://example.com/path#readme\n#comment\norg.opencontainers.image.source=https://github.com/docker/metadata-action'],
       ]),
       {
-        context: context.ContextSource.workflow,
-        bakeTarget: 'docker-metadata-action',
+        context: ContextSource.workflow,
+        bakeTarget: 'git-action-docker-metadata',
         flavor: [],
-        githubToken: '',
         images: [],
         labels: [],
         annotations: [
@@ -117,7 +136,12 @@ describe('getInputs', () => {
         sepLabels: '\n',
         sepTags: '\n',
         sepAnnotations: '\n',
-        tags: [],
+        tags: [
+          'type=schedule',
+          'type=ref,event=branch',
+          'type=ref,event=tag',
+          'type=ref,event=pr'
+        ],
       }
     ],
     [
@@ -127,10 +151,9 @@ describe('getInputs', () => {
         ['flavor', 'prefix=v#1\n#comment'],
       ]),
       {
-        context: context.ContextSource.workflow,
-        bakeTarget: 'docker-metadata-action',
+        context: ContextSource.workflow,
+        bakeTarget: 'git-action-docker-metadata',
         flavor: ['prefix=v#1'],
-        githubToken: '',
         images: [],
         labels: [],
         annotations: [],
@@ -141,36 +164,62 @@ describe('getInputs', () => {
       }
     ],
   ];
-  test.each(cases)('[%d] given %o as inputs, returns %o', async (num: number, inputs: Map<string, string>, expected: context.Inputs) => {
+  test.each(cases)('[%d] given %o as inputs, returns %o', (num: number, inputs: Map<string, string>, expected: Inputs) => {
     inputs.forEach((value: string, name: string) => {
       setInput(name, value);
     });
-    const res = await context.getInputs();
-    expect(res).toEqual(expected);
+    expect(getInputs()).toEqual(expected);
   });
 });
 
 describe('getContext', () => {
-  it('workflow', async () => {
-    const ctx = await context.getContext(context.ContextSource.workflow, toolkit);
-    expect(ctx.ref).toEqual('refs/heads/dev');
-    expect(ctx.sha).toEqual('5f3331d7f7044c18ca9f12c77d961c4d7cf3276a');
-    expect(ctx.commitDate).toEqual(new Date('2024-11-13T13:42:28.000Z'));
+  const originalEnv = process.env;
+  beforeEach(() => {
+    vi.resetModules();
+    process.env = {
+      ...originalEnv,
+      ...dotenv.parse(fs.readFileSync(path.join(import.meta.dirname, 'fixtures/event_create_branch.env')))
+    };
   });
-  it('git', async () => {
-    vi.spyOn(Git, 'context').mockImplementation((): Promise<context.Context> => {
-      return Promise.resolve({
-        ref: 'refs/heads/git-test',
-        sha: 'git-test-sha'
-      } as context.Context);
+  afterEach(() => {
+    process.env = originalEnv;
+    vi.restoreAllMocks();
+  });
+
+  it('should return git context', async () => {
+    vi.spyOn(gitModule, 'getGitContext').mockImplementation(async () => {
+      return {
+        sha: '5f3331d7f7044c18ca9f12c77d961c4d7cf3276a',
+        ref: process.env.GITHUB_REF || 'refs/heads/dev',
+        commitDate: new Date('2024-11-13T13:42:28.000Z'),
+        remoteUrl: 'https://github.com/test/repo.git',
+        defaultBranch: 'master'
+      };
     });
-    vi.spyOn(Git, 'commitDate').mockImplementation(async (): Promise<Date> => {
-      return new Date('2023-01-01T13:42:28.000Z');
+
+    const context = await getContext(ContextSource.git);
+    expect(context.ref).toEqual('refs/heads/dev');
+    expect(context.sha).toEqual('5f3331d7f7044c18ca9f12c77d961c4d7cf3276a');
+    expect(context.commitDate).toEqual(new Date('2024-11-13T13:42:28.000Z'));
+  });
+
+  it('should fall back to git commit date when workflow payload missing', async () => {
+    vi.spyOn(gitModule, 'getGitContext').mockImplementation(async () => {
+      return {
+        sha: 'payload-sha',
+        ref: 'refs/heads/workflow-branch',
+        commitDate: new Date('2022-01-01T00:00:00.000Z'),
+        remoteUrl: 'https://github.com/test/repo.git',
+        defaultBranch: 'main'
+      };
     });
-    const ctx = await context.getContext(context.ContextSource.git, toolkit);
-    expect(ctx.ref).toEqual('refs/heads/git-test');
-    expect(ctx.sha).toEqual('git-test-sha');
-    expect(ctx.commitDate).toEqual(new Date('2023-01-01T13:42:28.000Z'));
+    process.env.GITHUB_SHA = 'payload-sha';
+    process.env.GITHUB_REF = 'refs/heads/workflow-branch';
+    delete process.env.GITHUB_EVENT_PATH;
+    const context = await getContext(ContextSource.workflow);
+    expect(context.ref).toEqual('refs/heads/workflow-branch');
+    expect(context.sha).toEqual('payload-sha');
+    expect(context.commitDate).toEqual(new Date('2022-01-01T00:00:00.000Z'));
   });
 });
 

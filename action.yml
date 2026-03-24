@@ -1,16 +1,16 @@
 # https://help.github.com/en/articles/metadata-syntax-for-github-actions
-name: 'Docker Metadata action'
-description: "GitHub Action to extract metadata (tags, labels) for Docker"
-author: 'docker'
+name: 'Docker Metadata action v2'
+description: "GitHub Action to extract metadata (tags, labels) for Docker using git commands (no dependency on GitHub API calls)"
+author: 'LiquidLogicLabs'
 branding:
   icon: 'anchor'
   color: 'blue'
 
 inputs:
   context:
-    description: 'Where to get context data. Allowed options are "workflow"  (default), "git".'
-    default: "workflow"
-    required: true
+    description: 'Where to get context data. Allowed options are "workflow" (default), "git".'
+    default: 'workflow'
+    required: false
   images:
     description: 'List of Docker images to use as base name for tags'
     required: false
@@ -36,12 +36,12 @@ inputs:
     description: 'Separator to use for annotations output (default \n)'
     required: false
   bake-target:
-    description: 'Bake target name (default docker-metadata-action)'
+    description: 'Bake target name (default git-action-docker-metadata)'
     required: false
   github-token:
-    description: 'GitHub Token as provided by secrets'
+    description: 'GitHub Token as provided by secrets (unused in this fork; retained for upstream compatibility)'
     default: ${{ github.token }}
-    required: true
+    required: false
 
 outputs:
   version:

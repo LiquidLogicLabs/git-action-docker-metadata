@@ -1,0 +1,68 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "yarn test",
+			"type": "shell",
+			"command": "yarn",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "yarn test",
+			"type": "shell",
+			"command": "yarn",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "yarn test (runInBand)",
+			"type": "shell",
+			"command": "yarn",
+			"args": [
+				"test",
+				"--",
+				"--runInBand"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "yarn test --runInBand",
+			"type": "shell",
+			"command": "yarn",
+			"args": [
+				"test",
+				"--runInBand"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "yarn build",
+			"type": "shell",
+			"command": "yarn",
+			"args": [
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "yarn test",
+			"type": "shell",
+			"command": "yarn",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
