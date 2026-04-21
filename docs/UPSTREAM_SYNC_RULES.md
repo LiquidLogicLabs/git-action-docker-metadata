@@ -35,3 +35,7 @@ This fork must track upstream features while remaining 100% GitHub-API free (git
 - [ ] workflows match upstream
 - [ ] dist rebuilt
 - [ ] Lint/test/build pass
+
+## Sync log
+
+- **2026-04-21** — Verified alignment with upstream `v6.0.0`. Upstream is 16 commits ahead on `master` (all CI/CD only — zizmor, CodeQL, dependabot, workflow fixes; `git log HEAD..upstream/master -- src/ __tests__/` returns zero commits). Declined to rebase onto `master` to preserve the "version matches upstream exactly" convention. 3-grep invariant verified 0/0/0 on rebuilt `dist/index.js`. All 66 Vitest tests pass. Will re-sync when upstream publishes the next release tag (v6.0.1+ or v7).
