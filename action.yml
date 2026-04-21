@@ -39,7 +39,7 @@ inputs:
     description: 'Bake target name (default git-action-docker-metadata)'
     required: false
   github-token:
-    description: 'GitHub Token as provided by secrets (unused in this fork; retained for upstream compatibility)'
+    description: '[DEPRECATED / UNUSED in this fork] GitHub Token. This fork reads metadata directly from git instead of calling the GitHub API, so no token is required. The input is retained only for API compatibility with the upstream docker/metadata-action; passing a value is a no-op. Will be removed in a future major version.'
     default: ${{ github.token }}
     required: false
 
