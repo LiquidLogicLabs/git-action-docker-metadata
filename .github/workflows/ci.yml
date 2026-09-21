@@ -613,7 +613,7 @@ jobs:
         name: No output environment variables set
         shell: bash
         run: |
-          [[ "$(printenv | grep "^DOCKER_METADATA_OUTPUT_" | wc -l)" -eq 0 ]] || exit 1
+          [[ "$(printenv | grep -c "^DOCKER_METADATA_OUTPUT_")" -eq 0 ]] || exit 1
 
   bake-annotations:
     runs-on: ubuntu-latest
