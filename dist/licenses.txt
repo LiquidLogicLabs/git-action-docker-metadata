@@ -141,6 +141,12 @@ found in LICENSE.APACHE or LICENSE.BSD. Contributions to this software is made
 under the terms of *both* these licenses.
 
 
+@simple-git/args-pathspec
+MIT
+
+@simple-git/argv-parser
+MIT
+
 core-js-pure
 MIT
 Copyright (c) 2014-2025 Denis Pushkarev, 2025 CoreJS Company
