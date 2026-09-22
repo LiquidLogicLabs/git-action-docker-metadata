@@ -16,7 +16,7 @@
 //        where <version> is bare MAJOR.MINOR.PATCH, no leading "v".
 import {readFileSync} from 'node:fs';
 
-const fail = (msg) => {
+const fail = msg => {
   console.error(`::error::${msg}`);
   process.exit(1);
 };
@@ -44,10 +44,7 @@ const want = upstreamTag.replace(/^v/, '').split('.').slice(0, 2).join('.');
 const got = version.split('.').slice(0, 2).join('.');
 
 if (want !== got) {
-  fail(
-    `version ${version} does not mirror upstream ${upstreamTag}: ` +
-      `expected ${want}.x (the fork mirrors upstream MAJOR.MINOR and owns the PATCH)`
-  );
+  fail(`version ${version} does not mirror upstream ${upstreamTag}: ` + `expected ${want}.x (the fork mirrors upstream MAJOR.MINOR and owns the PATCH)`);
 }
 
 console.log(`v${version} mirrors upstream ${upstreamTag} (${want}.x) — ok`);
