@@ -28,26 +28,13 @@ jobs:
           fetch-depth: 0
 
       - name: Validate the version against the mirror rule
+        # Rule: fork mirrors upstream MAJOR.MINOR and owns the PATCH. Extracted to a
+        # script so release.yml (the tag-push path) applies the identical check -- two
+        # hand-kept copies of a release gate drift, and a drifted gate still reports
+        # success.
         env:
           Z_VERSION: ${{ github.event.inputs.version }}
-        run: |
-          set -euo pipefail
-          if [[ ! "${Z_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::refusing malformed version"
-            exit 1
-          fi
-          upstream_tag=$(node -p "require('./.upstream-sync.json').tag")
-          if [[ ! "${upstream_tag}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::refusing malformed upstream tag in .upstream-sync.json"
-            exit 1
-          fi
-          # Rule: fork mirrors upstream MAJOR.MINOR and owns the PATCH.
-          want="${upstream_tag#v}"; want="${want%.*}"
-          got="${Z_VERSION%.*}"
-          if [ "${want}" != "${got}" ]; then
-            echo "::error::version does not mirror upstream ${upstream_tag} MAJOR.MINOR (${want}.x)"
-            exit 1
-          fi
+        run: node scripts/check-release-version.mjs "${Z_VERSION}"
 
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6

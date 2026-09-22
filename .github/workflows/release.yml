@@ -1,11 +1,14 @@
 # Creates the GitHub release from a pushed tag, so the documented process for this repo
 # set -- tag and push, let the pipeline do the rest -- also holds here.
 #
-# Upstream docker/metadata-action has no such workflow: its publish.yml and
-# tag-release.yml both trigger on `release: published`, which assumes a maintainer
-# publishes the release by hand. Inherited unchanged, that left a gap on this fork --
-# pushing a tag ran CI, created no release, and therefore never fired tag-release.yml,
-# so the floating tags consumers pin were silently left behind.
+# sync-release.yml remains the primary, dispatch-driven path: it does the tagging too.
+# This workflow covers the case where a tag is pushed directly, which previously created
+# no release at all and therefore never fired tag-release.yml, silently leaving the
+# floating tags consumers pin on the previous commit.
+#
+# It applies the SAME gates as sync-release.yml -- the mirror rule, the vendored check,
+# tests, build and the dist assertion -- because a release path that skips them is how a
+# fork quietly drifts from upstream.
 name: release
 
 on:
@@ -37,6 +40,38 @@ jobs:
           persist-credentials: false
 
       -
+        name: Validate the version against the mirror rule
+        # Shared with sync-release.yml so the two cannot drift. The fork mirrors upstream
+        # MAJOR.MINOR and owns the PATCH; a tag outside that is refused before anything
+        # is published.
+        env:
+          Z_TAG: ${{ github.ref_name }}
+        run: node scripts/check-release-version.mjs "${Z_TAG#v}"
+
+      -
+        name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          # setup-node enables package-manager caching by default. This job publishes a
+          # release, and a cache restored from another run must not be able to influence
+          # the artifact it builds (zizmor: cache-poisoning).
+          package-manager-cache: false
+
+      -
+        name: Install, verify upstream parity, test, build
+        run: |
+          set -euo pipefail
+          yarn install --immutable
+          yarn check:vendored
+          yarn test
+          yarn build
+
+      -
+        name: dist is committed
+        run: git diff --exit-code dist/index.js
+
+      -
         name: Create the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,9 +82,11 @@ jobs:
             echo "Release ${Z_TAG} already exists; nothing to do."
             exit 0
           fi
+          upstream_tag=$(node -p "require('./.upstream-sync.json').tag")
+          upstream_sha=$(node -p "require('./.upstream-sync.json').commit")
           # --verify-tag: refuse to invent a release for a tag that is not actually pushed.
           gh release create "${Z_TAG}" \
             --title "${Z_TAG}" \
-            --generate-notes \
-            --verify-tag
+            --verify-tag \
+            --notes "Synced with upstream docker/metadata-action ${upstream_tag} (${upstream_sha})."
           echo "Created release ${Z_TAG}"
