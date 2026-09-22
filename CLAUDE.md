@@ -102,7 +102,8 @@ Upstream workflows that don't apply to this fork are disabled with a minimal `if
 | `validate.yml` | `if: github.repository_owner == 'docker'` — disables bake-based validation |
 | `codeql.yml` | `if: github.repository_owner == 'docker'` — disables the advanced CodeQL config; this repo uses GitHub's default setup, and the two conflict |
 | `update-dist.yml` | `owner: ${{ github.repository_owner }}` — replaces hardcoded `docker` |
-| `tag-release.yml` | Our file (new, never conflicts) — updates floating major tag on release |
+| `tag-release.yml` | Our file (new, never conflicts) — updates floating `vX` **and** `vX.Y` on release; also `workflow_dispatch` (input: `tag`) so a stale floating tag can be repaired without cutting a release |
+| `release.yml` | Our file (new, never conflicts) — creates the release from a **pushed tag**, applying the same gates as `sync-release.yml` |
 
 When syncing upstream, check these four files for new conflicts. The `if` conditions require at most a 1-line re-add if upstream rewrites the job block.
 
@@ -118,8 +119,25 @@ version to release, e.g. `6.2.1`) — never by hand-tagging. It:
 3. Asserts `dist/index.js` is unchanged by that build (`git diff --exit-code dist/index.js`).
 4. Tags `vX.Y.Z` and force-updates the floating `vX` and `vX.Y` tags, then creates the
    GitHub release. Creating the release fires a `release: published` event, which
-   re-triggers `tag-release.yml` and force-updates `vX` a second time — harmless,
-   since both workflows write the same SHA, but `vX` is written twice per release.
+   re-triggers `tag-release.yml` and force-updates `vX` and `vX.Y` a second time —
+   harmless, since both workflows write the same SHA, but both floating tags are written
+   twice per release.
+
+**Second path: pushing a tag directly.** `release.yml` triggers on `v*.*.*` and creates
+the release, which then cascades into `tag-release.yml` to move the floating tags. It
+applies the *same* gates as `sync-release.yml` — the mirror rule, `check:vendored`,
+tests, build, and the `dist` assertion — because a release path that skips them is how a
+fork quietly drifts from upstream. It exists because a pushed tag previously created no
+release at all, so the floating tags consumers pin were silently left behind; that is
+what happened with `v6.2.1` on 2026-09-21, which had to be published by hand.
+
+The mirror rule lives in `scripts/check-release-version.mjs`, called by both paths, so
+there is exactly one copy of it. Two hand-kept copies of a release gate drift, and a
+drifted gate still reports success.
+
+**Do not create releases or move tags by hand.** Both are automated; doing it manually
+skips the mirror validation, the vendored check and the `dist` gate, and `tag-release.yml`
+will have already moved the floating tags anyway.
 
 There are no direct `release:patch`/`release:minor`/`release:major` npm scripts — they were
 removed because they bypassed every one of the gates above and produced prerelease
