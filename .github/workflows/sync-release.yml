@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Fork version to release, e.g. 6.2.1'
+        description: 'Fork version to release: bare MAJOR.MINOR.PATCH, no leading v. MAJOR.MINOR must match the upstream tag in .upstream-sync.json'
         required: true
         type: string
 

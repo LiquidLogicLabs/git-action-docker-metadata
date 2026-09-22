@@ -3,9 +3,10 @@
 //
 //   the fork mirrors upstream MAJOR.MINOR and owns the PATCH
 //
-// So with .upstream-sync.json recording upstream v6.2.0, `6.2.0` and `6.2.4` are
-// valid and `6.3.0` is not — 6.3.x only becomes available once upstream ships 6.3.0
-// and the vendored files are re-synced.
+// So if .upstream-sync.json records upstream `vX.Y.Z`, any `X.Y.*` is valid and anything
+// outside `X.Y` is not — a new MAJOR.MINOR only becomes available once upstream ships it
+// and the vendored files are re-synced. No version is hardcoded here or in the workflows
+// that call it; .upstream-sync.json is the only place the tracked release is named.
 //
 // This exists as one script rather than inline shell in each workflow because both
 // sync-release.yml (the dispatch path) and release.yml (the tag-push path) must apply

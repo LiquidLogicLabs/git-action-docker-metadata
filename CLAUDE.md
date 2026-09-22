@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A fork of `docker/metadata-action` that removes all GitHub API dependencies, replacing them with direct git commands via `simple-git`. This makes the action work with any git host (GitHub, Gitea, GitLab, Bitbucket, self-hosted, etc.).
 
 **Versioning (changed 2026-09-05):** the fork mirrors upstream's **MAJOR.MINOR** and
-**owns the PATCH** — upstream 6.2.x becomes fork 6.2.N, with floating `v6` and `v6.2`
+**owns the PATCH** — upstream `X.Y.*` becomes fork `X.Y.N`, with floating `vX` and `vX.Y`
 maintained so both stay drop-in. This replaces the former "same version number as
 upstream" rule, which left no room to ship a fork-only fix between upstream releases.
 Rationale and the rejected alternative are recorded in
@@ -110,7 +110,7 @@ When syncing upstream, check these four files for new conflicts. The `if` condit
 ## Release Process
 
 Releases are cut through the `sync-release` workflow (`workflow_dispatch`, input: the fork
-version to release, e.g. `6.2.1`) — never by hand-tagging. It:
+version to release, bare `MAJOR.MINOR.PATCH`) — never by hand-tagging. It:
 
 1. Validates the given version's MAJOR.MINOR matches the upstream tag recorded in
    `.upstream-sync.json` (mirror-MAJOR.MINOR / own-the-PATCH — see the versioning note
@@ -129,7 +129,8 @@ applies the *same* gates as `sync-release.yml` — the mirror rule, `check:vendo
 tests, build, and the `dist` assertion — because a release path that skips them is how a
 fork quietly drifts from upstream. It exists because a pushed tag previously created no
 release at all, so the floating tags consumers pin were silently left behind; that is
-what happened with `v6.2.1` on 2026-09-21, which had to be published by hand.
+what happened with the fork patch release cut on 2026-09-21, which had to be published
+by hand.
 
 The mirror rule lives in `scripts/check-release-version.mjs`, called by both paths, so
 there is exactly one copy of it. Two hand-kept copies of a release gate drift, and a
