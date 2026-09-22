@@ -1,0 +1,55 @@
+# Creates the GitHub release from a pushed tag, so the documented process for this repo
+# set -- tag and push, let the pipeline do the rest -- also holds here.
+#
+# Upstream docker/metadata-action has no such workflow: its publish.yml and
+# tag-release.yml both trigger on `release: published`, which assumes a maintainer
+# publishes the release by hand. Inherited unchanged, that left a gap on this fork --
+# pushing a tag ran CI, created no release, and therefore never fired tag-release.yml,
+# so the floating tags consumers pin were silently left behind.
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  # Releases must never be cancelled by a superseding run.
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Upstream publishes its own releases; this only runs on forks.
+    if: github.repository_owner != 'docker'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # creates the release
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      -
+        name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          Z_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "${Z_TAG}" >/dev/null 2>&1; then
+            echo "Release ${Z_TAG} already exists; nothing to do."
+            exit 0
+          fi
+          # --verify-tag: refuse to invent a release for a tag that is not actually pushed.
+          gh release create "${Z_TAG}" \
+            --title "${Z_TAG}" \
+            --generate-notes \
+            --verify-tag
+          echo "Created release ${Z_TAG}"

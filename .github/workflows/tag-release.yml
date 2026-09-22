@@ -4,6 +4,16 @@ on:
   release:
     types:
       - published
+  # Lets a stale floating tag be repaired without cutting a new release.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to point the floating tags at (e.g. v6.2.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   tag-release:
@@ -14,16 +24,33 @@ jobs:
     steps:
       -
         name: Checkout
-        # zizmor: ignore[artipacked] "Update floating major tag" below needs the persisted default token to push; this job uploads no artifacts.
+        # zizmor: ignore[artipacked] "Update floating tags" below needs the persisted default token to push; this job uploads no artifacts.
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
       -
-        name: Update floating major tag
+        name: Update floating tags
         env:
-          RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
+          # github.event.release is absent on workflow_dispatch, hence the fallback.
+          RELEASE_TAG_NAME: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
+          set -euo pipefail
           VERSION="${RELEASE_TAG_NAME}"
+          case "${VERSION}" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::'${VERSION}' is not a vMAJOR.MINOR.PATCH tag"; exit 1 ;;
+          esac
+
           MAJOR="v$(echo "${VERSION#v}" | cut -d. -f1)"
+          MINOR="v$(echo "${VERSION#v}" | cut -d. -f1-2)"
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -f "${MAJOR}" "${VERSION}^{}"
-          git push origin "${MAJOR}" --force
+
+          # Both are moved. Previously only the major was, so anyone pinning vMAJOR.MINOR
+          # stayed on an older commit indefinitely -- including through a security fix.
+          for T in "${MAJOR}" "${MINOR}"; do
+            git tag -f "${T}" "${VERSION}^{}"
+            git push origin "${T}" --force
+            echo "Moved ${T} -> ${VERSION}"
+          done
