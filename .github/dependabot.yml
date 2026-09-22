@@ -2,6 +2,14 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    # Wait before adopting a freshly published version, so a compromised release is
+    # not pulled in the moment it appears. Security updates are exempt from cooldown,
+    # so this does not delay a patched advisory.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 7
     schedule:
       interval: "daily"
     labels:
@@ -9,6 +17,14 @@ updates:
       - "bot"
   - package-ecosystem: "npm"
     directory: "/"
+    # Wait before adopting a freshly published version, so a compromised release is
+    # not pulled in the moment it appears. Security updates are exempt from cooldown,
+    # so this does not delay a patched advisory.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 7
     schedule:
       interval: "daily"
     versioning-strategy: "increase"
